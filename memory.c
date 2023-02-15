@@ -2,6 +2,14 @@
 #include <stdlib.h>
 #include "oslabs.h"
 
+/*struct MEMORY_BLOCK {
+        int start_address;
+        int end_address;
+        int segment_size;
+        int process_id; //0 indicates a free block
+    };
+*/
+
 int is_NULLblock(struct MEMORY_BLOCK inblock)
 
 {
@@ -12,6 +20,7 @@ int is_NULLblock(struct MEMORY_BLOCK inblock)
 		return 0;
 }
 void release_memory(struct MEMORY_BLOCK freed_block, struct MEMORY_BLOCK memory_map[MAPMAX],int *map_cnt)
+/*This method releases a memory block. */
 {
 	int this_is_freed_block;
 	for (int i = 0; i < *map_cnt; i++)
@@ -63,6 +72,9 @@ struct MEMORY_BLOCK setup_NULLBLOCK(struct MEMORY_BLOCK *inblock)
 }
 
 struct MEMORY_BLOCK best_fit_allocate(int request_size, struct MEMORY_BLOCK memory_map[MAPMAX],int *map_cnt, int process_id)
+/* Searches the entire list, from beginning to end, and takes the smallest hole that is adequate.
+*  Rather than breaking up a big hole that might be needed later, best fit tries to find a hole that is close to the actual size needed,
+*  to best fit the request and the available holes.*/
 {
 	int size_difference;
 	int min_size_difference = 10000;
@@ -95,6 +107,7 @@ struct MEMORY_BLOCK best_fit_allocate(int request_size, struct MEMORY_BLOCK memo
 		memory_map[*map_cnt] = piece2;
 		(*map_cnt)++;
 		
+		/* piece1 */
 		memory_map[candidate_index].end_address = memory_map[candidate_index].start_address + request_size - 1;
 		memory_map[candidate_index].process_id = process_id;
 		memory_map[candidate_index].segment_size = request_size;
@@ -107,6 +120,8 @@ struct MEMORY_BLOCK best_fit_allocate(int request_size, struct MEMORY_BLOCK memo
 
 
 struct MEMORY_BLOCK first_fit_allocate(int request_size, struct MEMORY_BLOCK memory_map[MAPMAX],int *map_cnt, int process_id)
+/* The memory management sans along the list of segments until it fins a hole that is big enough. The hole is broken up into two 
+*  pieces, one for the process and one for the unused memory, except in the statistically unlikely case of an exact fit. */
 {
 	int size_difference;
 	int min_size_difference = 10000;
@@ -138,7 +153,8 @@ struct MEMORY_BLOCK first_fit_allocate(int request_size, struct MEMORY_BLOCK mem
 		piece2.segment_size = piece2.end_address - piece2.start_address + 1;
 		memory_map[*map_cnt] = piece2;
 		(*map_cnt)++;
-    
+		
+		/* piece1 */
 		memory_map[candidate_index].end_address = memory_map[candidate_index].start_address + request_size - 1;
 		memory_map[candidate_index].process_id = process_id;
 		memory_map[candidate_index].segment_size = request_size;
@@ -181,7 +197,7 @@ struct MEMORY_BLOCK worst_fit_allocate(int request_size, struct MEMORY_BLOCK mem
 		memory_map[*map_cnt] = piece2;
 		(*map_cnt)++;
 		
-		
+		/* piece1 */
 		memory_map[candidate_index].end_address = memory_map[candidate_index].start_address + request_size - 1;
 		memory_map[candidate_index].process_id = process_id;
 		memory_map[candidate_index].segment_size = request_size;
@@ -224,7 +240,7 @@ struct MEMORY_BLOCK next_fit_allocate(int request_size, struct MEMORY_BLOCK memo
 		memory_map[*map_cnt] = piece2;
 		(*map_cnt)++;
 		
-		
+		/* piece1 */
 		memory_map[candidate_index].end_address = memory_map[candidate_index].start_address + request_size - 1;
 		memory_map[candidate_index].process_id = process_id;
 		memory_map[candidate_index].segment_size = request_size;
